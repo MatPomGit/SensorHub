@@ -4,13 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -176,43 +175,10 @@ fun SensorHubApp() {
                     StatisticsDashboardScreen()
                 }
                 
-                composable("export") {
-                    DataExportScreen()
-                }
-                
                 // Enhanced Dashboard
                 composable("dashboard") {
                     EnhancedDashboardScreen(
                         onNavigate = { route -> navController.navigate(route) }
-                    )
-                }
-                
-                // Comparison & Trends
-                composable("comparison") {
-                    SensorComparisonScreen()
-                }
-                
-                composable("trends") {
-                    TrendsAnalysisScreen()
-                }
-                
-                // Achievements & Challenges
-                composable("achievements") {
-                    AchievementsScreen()
-                }
-                
-                composable("challenges") {
-                    DailyChallengesScreen()
-                }
-                
-                // Onboarding
-                composable("onboarding") {
-                    OnboardingScreen(
-                        onComplete = {
-                            navController.navigate(Screen.Home.route) {
-                                popUpTo("onboarding") { inclusive = true }
-                            }
-                        }
                     )
                 }
                 
@@ -252,7 +218,7 @@ fun PlaceholderScreen(title: String, message: String) {
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = androidx.compose.ui.Alignment.Center
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = message,
@@ -283,12 +249,12 @@ fun AboutScreen() {
             )
         }
     ) { paddingValues ->
-        androidx.compose.foundation.layout.Column(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(24.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -296,14 +262,14 @@ fun AboutScreen() {
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
-                androidx.compose.foundation.layout.Column(
+                Column(
                     modifier = Modifier.padding(24.dp),
-                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = "SensorHub",
                         style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
@@ -320,14 +286,14 @@ fun AboutScreen() {
             }
             
             Card(modifier = Modifier.fillMaxWidth()) {
-                androidx.compose.foundation.layout.Column(
+                Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = "About",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "SensorHub is a comprehensive educational platform designed to demonstrate mobile sensor integration, user interactions, and affective computing concepts.",
@@ -337,14 +303,14 @@ fun AboutScreen() {
             }
             
             Card(modifier = Modifier.fillMaxWidth()) {
-                androidx.compose.foundation.layout.Column(
+                Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = "Features",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                        fontWeight = FontWeight.Bold
                     )
                     Text("• 7 Different Sensors", style = MaterialTheme.typography.bodyMedium)
                     Text("• Real-time Data Visualization", style = MaterialTheme.typography.bodyMedium)

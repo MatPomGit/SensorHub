@@ -123,12 +123,11 @@ class SensorHubApplication : Application(), Configuration.Provider {
     /**
      * Provide WorkManager configuration with Hilt
      */
-    override fun getWorkManagerConfiguration(): Configuration {
-        return Configuration.Builder()
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
             .setMinimumLoggingLevel(android.util.Log.INFO)
             .build()
-    }
     
     override fun onTerminate() {
         super.onTerminate()

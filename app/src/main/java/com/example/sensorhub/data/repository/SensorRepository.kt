@@ -6,6 +6,7 @@ import com.kia.sensorhub.data.model.GyroscopeData
 import com.kia.sensorhub.data.model.MagnetometerData
 import com.kia.sensorhub.data.model.SensorData
 import com.kia.sensorhub.data.model.SensorReading
+import com.kia.sensorhub.data.model.SensorType
 import com.kia.sensorhub.data.model.toSensorReading
 import com.kia.sensorhub.sensors.AccelerometerManager
 import com.kia.sensorhub.sensors.GyroscopeManager
@@ -64,16 +65,16 @@ class SensorRepository @Inject constructor(
     /**
      * Save sensor reading to database
      */
-    suspend fun saveSensorReading(sensorData: SensorData) {
-        val reading = sensorData.toSensorReading()
+    suspend fun saveSensorReading(sensorData: SensorData, type: SensorType) {
+        val reading = sensorData.toSensorReading(type)
         sensorDao.insertReading(reading)
     }
     
     /**
      * Save multiple sensor readings to database
      */
-    suspend fun saveSensorReadings(sensorDataList: List<SensorData>) {
-        val readings = sensorDataList.map { it.toSensorReading() }
+    suspend fun saveSensorReadings(sensorDataList: List<SensorData>, type: SensorType) {
+        val readings = sensorDataList.map { it.toSensorReading(type) }
         sensorDao.insertReadings(readings)
     }
     

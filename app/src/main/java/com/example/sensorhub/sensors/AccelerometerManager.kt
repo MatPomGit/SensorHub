@@ -75,31 +75,6 @@ class AccelerometerManager(context: Context) {
      * Get sensor information
      */
     fun getSensorInfo(): SensorInfo? {
-        return accelerometer?.let {
-            SensorInfo(
-                name = it.name,
-                vendor = it.vendor,
-                version = it.version,
-                type = it.type,
-                maxRange = it.maximumRange,
-                resolution = it.resolution,
-                power = it.power,
-                minDelay = it.minDelay
-            )
-        }
+        return accelerometer?.toSensorInfo()
     }
 }
-
-/**
- * Data class containing sensor information
- */
-data class SensorInfo(
-    val name: String,
-    val vendor: String,
-    val version: Int,
-    val type: Int,
-    val maxRange: Float,
-    val resolution: Float,
-    val power: Float,
-    val minDelay: Int
-)
