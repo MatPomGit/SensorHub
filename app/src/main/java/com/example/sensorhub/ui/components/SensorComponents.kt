@@ -68,9 +68,9 @@ fun SensorCard(
             
             // Visual indicator
             LinearProgressIndicator(
-                progress = { (animatedValue / 20f).coerceIn(-1f, 1f).let { 
+                progress = (animatedValue / 20f).coerceIn(-1f, 1f).let { 
                     (it + 1f) / 2f // Normalize to 0-1
-                } },
+                },
                 modifier = Modifier
                     .width(80.dp)
                     .height(8.dp),
@@ -97,7 +97,7 @@ fun SensorInfoDialog(
                 InfoRow("Name", sensorInfo.name)
                 InfoRow("Vendor", sensorInfo.vendor)
                 InfoRow("Version", sensorInfo.version.toString())
-                InfoRow("Type", sensorInfo.type.toString())
+                InfoRow("Type", sensorInfo.getTypeName())
                 InfoRow("Max Range", "${sensorInfo.maxRange}")
                 InfoRow("Resolution", "${sensorInfo.resolution}")
                 InfoRow("Power", "${sensorInfo.power} mA")
