@@ -275,7 +275,7 @@ fun EmotionCard(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = factor.replace("_", " ").capitalize(),
+                            text = factor.replace("_", " ").replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() },
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
@@ -309,9 +309,6 @@ fun AffectiveStateVisualization(
             val centerY = size.height / 2
             val maxRadius = minOf(size.width, size.height) / 2 * 0.8f
             
-            // Draw quadrant labels
-            drawContext.canvas.save()
-            
             // Draw axes
             drawLine(
                 color = Color.Gray,
@@ -324,18 +321,6 @@ fun AffectiveStateVisualization(
                 start = Offset(centerX, centerY - maxRadius),
                 end = Offset(centerX, centerY + maxRadius),
                 strokeWidth = 2f
-            )
-            
-            // Draw quadrants with colors
-            listOf(
-                // Happy (high valence, high arousal)
-                Pair(Color(0xFF4CAF50).copy(alpha = 0.2f), Offset(1f, -1f)),
-                // Excited (high valence, low arousal)
-                Pair(Color(0xFF2196F3).copy(alpha = 0.2f), Offset(1f, 1f)),
-                // Sad (low valence, high arousal)
-                Pair(Color(0xFFF44336).copy(alpha = 0.2f), Offset(-1f, -1f)),
-                // Calm (low valence, low arousal)
-                Pair(Color(0xFF9E9E9E).copy(alpha = 0.2f), Offset(-1f, 1f))
             )
             
             // Calculate current position
@@ -362,8 +347,6 @@ fun AffectiveStateVisualization(
                 radius = 40f,
                 center = Offset(x, y)
             )
-            
-            drawContext.canvas.restore()
         }
     }
 }
@@ -407,7 +390,7 @@ fun DimensionalSlider(
             }
             
             LinearProgressIndicator(
-                progress = { animatedValue },
+                progress = animatedValue,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(12.dp),
@@ -497,7 +480,7 @@ fun EmotionDistributionRow(
             )
         }
         LinearProgressIndicator(
-            progress = { percentage },
+            progress = percentage,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(6.dp),

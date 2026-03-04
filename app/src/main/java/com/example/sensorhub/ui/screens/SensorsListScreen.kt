@@ -53,7 +53,7 @@ class SensorsListViewModel @Inject constructor(
             SensorItem(
                 name = "Gyroscope",
                 description = "Measures device rotation",
-                icon = Icons.Default.ThreeDRotation,
+                icon = Icons.Default.ScreenRotation,
                 color = SensorGyroscope,
                 isAvailable = repository.isGyroscopeAvailable(),
                 route = Screen.Gyroscope.route

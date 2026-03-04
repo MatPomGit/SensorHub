@@ -56,7 +56,7 @@ fun AchievementsScreen(
                         Text("Achievements")
                         Text(
                             text = "Level ${uiState.userLevel} • ${uiState.totalPoints} XP",
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                         )
                     }
@@ -213,7 +213,7 @@ fun LevelProgressCard(
             // Progress bar
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 LinearProgressIndicator(
-                    progress = { animatedProgress },
+                    progress = animatedProgress,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(12.dp)
@@ -533,7 +533,7 @@ fun ChallengeCard(
                 }
                 
                 LinearProgressIndicator(
-                    progress = { challenge.progress.toFloat() / challenge.target },
+                    progress = challenge.progress.toFloat() / challenge.target,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)

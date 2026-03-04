@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.cos
@@ -24,14 +24,14 @@ import kotlin.random.Random
 /**
  * Particle system for creating dynamic visual effects
  */
-class Particle(
-    var x: Float,
-    var y: Float,
-    var vx: Float,
-    var vy: Float,
-    var life: Float = 1f,
-    var size: Float = 4f,
-    var color: Color = Color.White
+data class Particle(
+    val x: Float,
+    val y: Float,
+    val vx: Float,
+    val vy: Float,
+    val life: Float = 1f,
+    val size: Float = 4f,
+    val color: Color = Color.White
 )
 
 /**
@@ -62,7 +62,7 @@ fun ParticleEffect(
         }
     }
     
-    LaunchedEffect(particles) {
+    LaunchedEffect(isActive) {
         if (isActive) {
             while (true) {
                 kotlinx.coroutines.delay(16) // ~60 FPS

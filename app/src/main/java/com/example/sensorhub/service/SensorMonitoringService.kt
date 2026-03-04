@@ -7,9 +7,8 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.kia.sensorhub.MainActivity
 import com.kia.sensorhub.R
-import com.kia.sensorhub.data.model.SensorType
-import com.kia.sensorhub.data.model.toSensorReading
 import com.kia.sensorhub.data.repository.SensorRepository
+import com.kia.sensorhub.data.model.toSensorReading
 import com.kia.sensorhub.sensors.AccelerometerManager
 import com.kia.sensorhub.sensors.GyroscopeManager
 import com.kia.sensorhub.sensors.MagnetometerManager
@@ -121,9 +120,7 @@ class SensorMonitoringService : Service() {
                             )
                         }
                         .collect { data ->
-                            // Save to database
-                            val reading = data.toSensorReading(SensorType.ACCELEROMETER)
-                            repository.saveSensorReading(data, SensorType.ACCELEROMETER)
+                            repository.saveSensorReading(data)
                         }
                 }
             }
@@ -140,7 +137,7 @@ class SensorMonitoringService : Service() {
                             )
                         }
                         .collect { data ->
-                            repository.saveSensorReading(data, SensorType.GYROSCOPE)
+                            repository.saveSensorReading(data)
                         }
                 }
             }
@@ -157,7 +154,7 @@ class SensorMonitoringService : Service() {
                             )
                         }
                         .collect { data ->
-                            repository.saveSensorReading(data, SensorType.MAGNETOMETER)
+                            repository.saveSensorReading(data)
                         }
                 }
             }
@@ -246,36 +243,5 @@ class SensorMonitoringService : Service() {
             tag = "SensorMonitoringService",
             message = "Service destroyed"
         )
-    }
-}
-
-/**
- * Service Manager to control the monitoring service
- */
-class ServiceManager(private val context: Context) {
-    
-    private val sharedPrefs = context.getSharedPreferences("service_prefs", Context.MODE_PRIVATE)
-    
-    /**
-     * Check if service is running
-     */
-    fun isServiceRunning(): Boolean {
-        return sharedPrefs.getBoolean("is_running", false)
-    }
-    
-    /**
-     * Start monitoring service
-     */
-    fun startMonitoring(sensors: Array<String>) {
-        SensorMonitoringService.start(context, sensors)
-        sharedPrefs.edit().putBoolean("is_running", true).apply()
-    }
-    
-    /**
-     * Stop monitoring service
-     */
-    fun stopMonitoring() {
-        SensorMonitoringService.stop(context)
-        sharedPrefs.edit().putBoolean("is_running", false).apply()
     }
 }
