@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
  */
 interface SensorData {
     val timestamp: Long
+    val sensorType: SensorType
 }
 
 /**
@@ -37,6 +38,7 @@ enum class SensorType(val displayName: String) {
  */
 data class AccelerometerData(
     override val timestamp: Long = System.currentTimeMillis(),
+    override val sensorType: SensorType = SensorType.ACCELEROMETER,
     val x: Float = 0f,
     val y: Float = 0f,
     val z: Float = 0f,
@@ -48,6 +50,7 @@ data class AccelerometerData(
  */
 data class GyroscopeData(
     override val timestamp: Long = System.currentTimeMillis(),
+    override val sensorType: SensorType = SensorType.GYROSCOPE,
     val x: Float = 0f,
     val y: Float = 0f,
     val z: Float = 0f,
@@ -59,6 +62,7 @@ data class GyroscopeData(
  */
 data class MagnetometerData(
     override val timestamp: Long = System.currentTimeMillis(),
+    override val sensorType: SensorType = SensorType.MAGNETOMETER,
     val x: Float = 0f,
     val y: Float = 0f,
     val z: Float = 0f,
@@ -71,6 +75,7 @@ data class MagnetometerData(
  */
 data class LightData(
     override val timestamp: Long = System.currentTimeMillis(),
+    override val sensorType: SensorType = SensorType.LIGHT,
     val illuminance: Float = 0f
 ) : SensorData
 
@@ -79,6 +84,7 @@ data class LightData(
  */
 data class GpsData(
     override val timestamp: Long = System.currentTimeMillis(),
+    override val sensorType: SensorType = SensorType.GPS,
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val altitude: Double = 0.0,
@@ -92,6 +98,7 @@ data class GpsData(
  */
 data class ProximityData(
     override val timestamp: Long = System.currentTimeMillis(),
+    override val sensorType: SensorType = SensorType.PROXIMITY,
     val distance: Float = 0f,
     val isNear: Boolean = false,
     val maxRange: Float = 5f
@@ -102,6 +109,7 @@ data class ProximityData(
  */
 data class BarometerData(
     override val timestamp: Long = System.currentTimeMillis(),
+    override val sensorType: SensorType = SensorType.BAROMETER,
     val pressure: Float = 0f,
     val altitude: Float = 0f
 ) : SensorData
@@ -154,11 +162,11 @@ data class SensorReading(
 /**
  * Extension function to convert SensorData to SensorReading
  */
-fun SensorData.toSensorReading(type: SensorType): SensorReading {
+fun SensorData.toSensorReading(): SensorReading {
     return when (this) {
         is AccelerometerData -> SensorReading(
             timestamp = timestamp,
-            sensorType = type.name,
+            sensorType = sensorType.name,
             valueX = x,
             valueY = y,
             valueZ = z,
@@ -166,7 +174,7 @@ fun SensorData.toSensorReading(type: SensorType): SensorReading {
         )
         is GyroscopeData -> SensorReading(
             timestamp = timestamp,
-            sensorType = type.name,
+            sensorType = sensorType.name,
             valueX = x,
             valueY = y,
             valueZ = z,
@@ -174,7 +182,7 @@ fun SensorData.toSensorReading(type: SensorType): SensorReading {
         )
         is MagnetometerData -> SensorReading(
             timestamp = timestamp,
-            sensorType = type.name,
+            sensorType = sensorType.name,
             valueX = x,
             valueY = y,
             valueZ = z,
@@ -182,12 +190,12 @@ fun SensorData.toSensorReading(type: SensorType): SensorReading {
         )
         is LightData -> SensorReading(
             timestamp = timestamp,
-            sensorType = type.name,
+            sensorType = sensorType.name,
             valueX = illuminance
         )
         is GpsData -> SensorReading(
             timestamp = timestamp,
-            sensorType = type.name,
+            sensorType = sensorType.name,
             valueX = latitude.toFloat(),
             valueY = longitude.toFloat(),
             valueZ = altitude.toFloat(),
@@ -196,16 +204,16 @@ fun SensorData.toSensorReading(type: SensorType): SensorReading {
         )
         is ProximityData -> SensorReading(
             timestamp = timestamp,
-            sensorType = type.name,
+            sensorType = sensorType.name,
             valueX = distance,
             valueExtra = if (isNear) 1f else 0f
         )
         is BarometerData -> SensorReading(
             timestamp = timestamp,
-            sensorType = type.name,
+            sensorType = sensorType.name,
             valueX = pressure,
             valueExtra = altitude
         )
-        else -> SensorReading(timestamp = timestamp, sensorType = type.name)
+        else -> SensorReading(timestamp = timestamp, sensorType = sensorType.name)
     }
 }

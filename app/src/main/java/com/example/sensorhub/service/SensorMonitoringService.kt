@@ -7,6 +7,8 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.kia.sensorhub.MainActivity
 import com.kia.sensorhub.R
+import com.kia.sensorhub.data.model.SensorType
+import com.kia.sensorhub.data.model.toSensorReading
 import com.kia.sensorhub.data.repository.SensorRepository
 import com.kia.sensorhub.sensors.AccelerometerManager
 import com.kia.sensorhub.sensors.GyroscopeManager
@@ -120,8 +122,8 @@ class SensorMonitoringService : Service() {
                         }
                         .collect { data ->
                             // Save to database
-                            val reading = data.toSensorReading()
-                            repository.saveSensorReading(reading)
+                            val reading = data.toSensorReading(SensorType.ACCELEROMETER)
+                            repository.saveSensorReading(data, SensorType.ACCELEROMETER)
                         }
                 }
             }
@@ -138,8 +140,7 @@ class SensorMonitoringService : Service() {
                             )
                         }
                         .collect { data ->
-                            val reading = data.toSensorReading()
-                            repository.saveSensorReading(reading)
+                            repository.saveSensorReading(data, SensorType.GYROSCOPE)
                         }
                 }
             }
@@ -156,8 +157,7 @@ class SensorMonitoringService : Service() {
                             )
                         }
                         .collect { data ->
-                            val reading = data.toSensorReading()
-                            repository.saveSensorReading(reading)
+                            repository.saveSensorReading(data, SensorType.MAGNETOMETER)
                         }
                 }
             }

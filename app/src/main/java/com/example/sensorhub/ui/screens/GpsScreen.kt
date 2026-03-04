@@ -83,7 +83,7 @@ fun GpsScreen(
                     containerColor = when {
                         !uiState.hasPermission -> MaterialTheme.colorScheme.errorContainer
                         !uiState.isAvailable -> MaterialTheme.colorScheme.errorContainer
-                        uiState.currentData.accuracy > 50 -> MaterialTheme.colorScheme.warningContainer
+                        uiState.currentData.accuracy > 50 -> MaterialTheme.colorScheme.errorContainer // Fallback if warningContainer missing
                         else -> MaterialTheme.colorScheme.primaryContainer
                     }
                 )

@@ -22,6 +22,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -531,7 +534,7 @@ class TutorialManager {
     fun nextStep() {
         val current = _currentStep.value ?: return
         if (current.stepNumber < current.totalSteps) {
-            // Move to next step (implementation would track actual steps)
+            _currentStep.value = current.copy(stepNumber = current.stepNumber + 1)
         } else {
             _currentStep.value = null
         }

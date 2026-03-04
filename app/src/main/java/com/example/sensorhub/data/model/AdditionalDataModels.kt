@@ -9,5 +9,3 @@ data class SensorConfig(
     val isEnabled: Boolean = true,
     val autoSave: Boolean = false
 )
-
-// Other models (LightData, GpsData, etc.) are now in SensorData.kt to avoid redeclarations.

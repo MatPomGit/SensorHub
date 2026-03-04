@@ -15,7 +15,7 @@ sealed class Screen(
     object Home : Screen("home", "Home", Icons.Default.Home)
     object Sensors : Screen("sensors", "Sensors", Icons.Default.Sensors)
     object Accelerometer : Screen("accelerometer", "Accelerometer", Icons.Default.Speed)
-    object Gyroscope : Screen("gyroscope", "Gyroscope", Icons.Default.ThreeDRotation)
+    object Gyroscope : Screen("gyroscope", "Gyroscope", Icons.Default.ScreenRotation) // Changed from ThreeDRotation
     object Magnetometer : Screen("magnetometer", "Magnetometer", Icons.Default.Explore)
     object Light : Screen("light", "Light", Icons.Default.LightMode)
     object GPS : Screen("gps", "GPS", Icons.Default.MyLocation)

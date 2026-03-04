@@ -127,16 +127,16 @@ fun SensorComparisonScreen(
 
 @Composable
 fun SensorSelectionCard(
-    selectedSensors: List<SensorInfo>,
-    onSensorToggle: (SensorInfo) -> Unit
+    selectedSensors: List<ComparisonSensorInfo>,
+    onSensorToggle: (ComparisonSensorInfo) -> Unit
 ) {
     val availableSensors = remember {
         listOf(
-            SensorInfo("accelerometer", "Accelerometer", Icons.Default.Speed, Color(0xFF2196F3)),
-            SensorInfo("gyroscope", "Gyroscope", Icons.Default.ThreeDRotation, Color(0xFF4CAF50)),
-            SensorInfo("magnetometer", "Magnetometer", Icons.Default.Explore, Color(0xFF9C27B0)),
-            SensorInfo("light", "Light Sensor", Icons.Default.LightMode, Color(0xFFFFEB3B)),
-            SensorInfo("proximity", "Proximity", Icons.Default.SensorsOff, Color(0xFFFF5722))
+            ComparisonSensorInfo("accelerometer", "Accelerometer", Icons.Default.Speed, Color(0xFF2196F3)),
+            ComparisonSensorInfo("gyroscope", "Gyroscope", Icons.Default.ScreenRotation, Color(0xFF4CAF50)),
+            ComparisonSensorInfo("magnetometer", "Magnetometer", Icons.Default.Explore, Color(0xFF9C27B0)),
+            ComparisonSensorInfo("light", "Light Sensor", Icons.Default.LightMode, Color(0xFFFFEB3B)),
+            ComparisonSensorInfo("proximity", "Proximity", Icons.Default.SensorsOff, Color(0xFFFF5722))
         )
     }
     
@@ -157,7 +157,7 @@ fun SensorSelectionCard(
             )
             
             availableSensors.forEach { sensor ->
-                SensorChip(
+                ComparisonSensorChip(
                     sensor = sensor,
                     isSelected = selectedSensors.contains(sensor),
                     onClick = { onSensorToggle(sensor) }
@@ -168,8 +168,8 @@ fun SensorSelectionCard(
 }
 
 @Composable
-fun SensorChip(
-    sensor: SensorInfo,
+fun ComparisonSensorChip(
+    sensor: ComparisonSensorInfo,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -216,7 +216,7 @@ fun SensorChip(
 
 @Composable
 fun DetailedSensorCard(
-    sensor: SensorInfo,
+    sensor: ComparisonSensorInfo,
     stats: SensorStats
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -420,6 +420,7 @@ fun TrendsAnalysisScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimePeriodSelector(
     selectedPeriod: TimePeriod,
@@ -524,7 +525,7 @@ fun TrendIndicator(
 }
 
 // Data classes
-data class SensorInfo(
+data class ComparisonSensorInfo(
     val id: String,
     val name: String,
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -569,7 +570,7 @@ class ComparisonViewModel @Inject constructor() : ViewModel() {
         loadData()
     }
     
-    fun toggleSensor(sensor: SensorInfo) {
+    fun toggleSensor(sensor: ComparisonSensorInfo) {
         val currentSelected = _uiState.value.selectedSensors.toMutableList()
         if (currentSelected.contains(sensor)) {
             currentSelected.remove(sensor)
@@ -600,7 +601,7 @@ class ComparisonViewModel @Inject constructor() : ViewModel() {
 }
 
 data class ComparisonUiState(
-    val selectedSensors: List<SensorInfo> = emptyList(),
+    val selectedSensors: List<ComparisonSensorInfo> = emptyList(),
     val comparisonData: List<Pair<String, List<Float>>> = emptyList(),
     val performanceMetrics: List<Float> = emptyList(),
     val sensorStats: Map<String, SensorStats> = emptyMap()
