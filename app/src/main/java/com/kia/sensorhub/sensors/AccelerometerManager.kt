@@ -32,6 +32,11 @@ class AccelerometerManager(context: Context) {
     fun getAccelerometerFlow(
         samplingPeriodUs: Int = SensorManager.SENSOR_DELAY_UI
     ): Flow<AccelerometerData> = callbackFlow {
+        val accelerometerSensor = accelerometer
+            ?: run {
+                close(IllegalStateException("Accelerometer is not available on this device"))
+                return@callbackFlow
+            }
         
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
@@ -61,8 +66,10 @@ class AccelerometerManager(context: Context) {
         }
         
         // Register listener
-        accelerometer?.let {
-            sensorManager.registerListener(listener, it, samplingPeriodUs)
+        val registered = sensorManager.registerListener(listener, accelerometerSensor, samplingPeriodUs)
+        if (!registered) {
+            close(IllegalStateException("Failed to register accelerometer listener"))
+            return@callbackFlow
         }
         
         // Unregister when Flow is cancelled

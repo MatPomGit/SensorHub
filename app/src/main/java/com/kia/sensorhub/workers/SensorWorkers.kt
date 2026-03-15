@@ -6,6 +6,8 @@ import androidx.work.*
 import com.kia.sensorhub.data.repository.SensorRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import java.util.concurrent.TimeUnit
@@ -25,6 +27,7 @@ class SensorMonitoringWorker @AssistedInject constructor(
         const val WORK_NAME = "sensor_monitoring_work"
         const val KEY_SENSOR_TYPE = "sensor_type"
         const val KEY_SAMPLE_COUNT = "sample_count"
+        private const val MAX_COLLECTION_TIME_MS = 30_000L
         
         /**
          * Schedule periodic sensor monitoring
@@ -71,13 +74,18 @@ class SensorMonitoringWorker @AssistedInject constructor(
         return try {
             val sensorType = inputData.getString(KEY_SENSOR_TYPE) ?: return Result.failure()
             val sampleCount = inputData.getInt(KEY_SAMPLE_COUNT, 10)
+            if (sampleCount <= 0) return Result.failure()
             
             // Collect sensor data based on type
-            when (sensorType) {
+            val collectionSucceeded = when (sensorType) {
                 "ACCELEROMETER" -> collectAccelerometerData(sampleCount)
                 "GYROSCOPE" -> collectGyroscopeData(sampleCount)
                 "MAGNETOMETER" -> collectMagnetometerData(sampleCount)
                 else -> return Result.failure()
+            }
+
+            if (!collectionSucceeded) {
+                return Result.failure()
             }
             
             Result.success()
@@ -86,28 +94,37 @@ class SensorMonitoringWorker @AssistedInject constructor(
         }
     }
     
-    private suspend fun collectAccelerometerData(sampleCount: Int) {
+    private suspend fun collectAccelerometerData(sampleCount: Int): Boolean {
         val samples = repository.getAccelerometerFlow()
-            .take(sampleCount)
-            .toList()
+            .collectWithTimeout(sampleCount)
+            ?: return false
 
         repository.saveSensorReadings(samples)
+        return true
     }
     
-    private suspend fun collectGyroscopeData(sampleCount: Int) {
+    private suspend fun collectGyroscopeData(sampleCount: Int): Boolean {
         val samples = repository.getGyroscopeFlow()
-            .take(sampleCount)
-            .toList()
+            .collectWithTimeout(sampleCount)
+            ?: return false
 
         repository.saveSensorReadings(samples)
+        return true
     }
     
-    private suspend fun collectMagnetometerData(sampleCount: Int) {
+    private suspend fun collectMagnetometerData(sampleCount: Int): Boolean {
         val samples = repository.getMagnetometerFlow()
-            .take(sampleCount)
-            .toList()
+            .collectWithTimeout(sampleCount)
+            ?: return false
 
         repository.saveSensorReadings(samples)
+        return true
+    }
+
+    private suspend fun <T> Flow<T>.collectWithTimeout(sampleCount: Int): List<T>? {
+        return withTimeoutOrNull(MAX_COLLECTION_TIME_MS) {
+            take(sampleCount).toList()
+        }
     }
 }
 

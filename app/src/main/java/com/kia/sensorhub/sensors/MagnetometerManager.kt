@@ -9,7 +9,6 @@ import com.kia.sensorhub.data.model.MagnetometerData
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlin.math.atan2
 import kotlin.math.sqrt
 
 /**
@@ -22,14 +21,20 @@ class MagnetometerManager(context: Context) {
     private val magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
     private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     
-    private var gravity: FloatArray? = null
-    private var geomagnetic: FloatArray? = null
-    
     fun isAvailable(): Boolean = magnetometer != null
     
     fun getMagnetometerFlow(
         samplingPeriodUs: Int = SensorManager.SENSOR_DELAY_UI
     ): Flow<MagnetometerData> = callbackFlow {
+        val magnetometerSensor = magnetometer
+            ?: run {
+                close(IllegalStateException("Magnetometer is not available on this device"))
+                return@callbackFlow
+            }
+        val accelerometerSensor = accelerometer
+
+        var gravity: FloatArray? = null
+        var geomagnetic: FloatArray? = null
         
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
@@ -81,10 +86,17 @@ class MagnetometerManager(context: Context) {
         }
         
         // Register both sensors for azimuth calculation
-        magnetometer?.let {
-            sensorManager.registerListener(listener, it, samplingPeriodUs)
+        val magnetometerRegistered = sensorManager.registerListener(
+            listener,
+            magnetometerSensor,
+            samplingPeriodUs
+        )
+        if (!magnetometerRegistered) {
+            close(IllegalStateException("Failed to register magnetometer listener"))
+            return@callbackFlow
         }
-        accelerometer?.let {
+
+        accelerometerSensor?.let {
             sensorManager.registerListener(listener, it, samplingPeriodUs)
         }
         
