@@ -25,6 +25,11 @@ class GyroscopeManager(context: Context) {
     fun getGyroscopeFlow(
         samplingPeriodUs: Int = SensorManager.SENSOR_DELAY_UI
     ): Flow<GyroscopeData> = callbackFlow {
+        val gyroscopeSensor = gyroscope
+            ?: run {
+                close(IllegalStateException("Gyroscope is not available on this device"))
+                return@callbackFlow
+            }
         
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
@@ -51,8 +56,10 @@ class GyroscopeManager(context: Context) {
             override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
         }
         
-        gyroscope?.let {
-            sensorManager.registerListener(listener, it, samplingPeriodUs)
+        val registered = sensorManager.registerListener(listener, gyroscopeSensor, samplingPeriodUs)
+        if (!registered) {
+            close(IllegalStateException("Failed to register gyroscope listener"))
+            return@callbackFlow
         }
         
         awaitClose {
