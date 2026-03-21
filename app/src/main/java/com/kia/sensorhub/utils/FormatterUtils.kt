@@ -17,7 +17,9 @@ object FormatterUtils {
      * Format float to specified decimal places
      */
     fun formatFloat(value: Float, decimalPlaces: Int = 2): String {
-        val pattern = "0.${"0".repeat(decimalPlaces)}"
+        if (!value.isFinite()) return "0"
+        val safeDecimalPlaces = decimalPlaces.coerceAtLeast(0)
+        val pattern = if (safeDecimalPlaces == 0) "0" else "0.${"0".repeat(safeDecimalPlaces)}"
         return DecimalFormat(pattern).format(value)
     }
     
@@ -32,10 +34,13 @@ object FormatterUtils {
      * Format large numbers with K/M/B suffixes
      */
     fun formatLargeNumber(value: Long): String {
+        val absValue = kotlin.math.abs(value.toDouble())
+        val sign = if (value < 0) "-" else ""
+
         return when {
-            value >= 1_000_000_000 -> "${value / 1_000_000_000}B"
-            value >= 1_000_000 -> "${value / 1_000_000}M"
-            value >= 1_000 -> "${value / 1_000}K"
+            absValue >= 1_000_000_000 -> "$sign${DecimalFormat("0.#").format(absValue / 1_000_000_000)}B"
+            absValue >= 1_000_000 -> "$sign${DecimalFormat("0.#").format(absValue / 1_000_000)}M"
+            absValue >= 1_000 -> "$sign${DecimalFormat("0.#").format(absValue / 1_000)}K"
             else -> value.toString()
         }
     }
@@ -81,6 +86,17 @@ object FormatterUtils {
     fun formatTimeAgo(timestamp: Long): String {
         val now = System.currentTimeMillis()
         val diff = now - timestamp
+
+        if (diff < 0) {
+            val futureDiff = -diff
+            return when {
+                futureDiff < 60_000 -> "In less than a minute"
+                futureDiff < 3_600_000 -> "In ${futureDiff / 60_000}m"
+                futureDiff < 86_400_000 -> "In ${futureDiff / 3_600_000}h"
+                futureDiff < 604_800_000 -> "In ${futureDiff / 86_400_000}d"
+                else -> formatTimestamp(timestamp, "MMM dd, yyyy")
+            }
+        }
         
         return when {
             diff < 60_000 -> "Just now"
@@ -97,10 +113,13 @@ object FormatterUtils {
      * Format file size in bytes to human readable
      */
     fun formatFileSize(bytes: Long): String {
+        val absBytes = kotlin.math.abs(bytes.toDouble())
+        val sign = if (bytes < 0) "-" else ""
+
         return when {
-            bytes >= 1_073_741_824 -> "${bytes / 1_073_741_824} GB"
-            bytes >= 1_048_576 -> "${bytes / 1_048_576} MB"
-            bytes >= 1_024 -> "${bytes / 1_024} KB"
+            absBytes >= 1_073_741_824 -> "$sign${(absBytes / 1_073_741_824).toLong()} GB"
+            absBytes >= 1_048_576 -> "$sign${(absBytes / 1_048_576).toLong()} MB"
+            absBytes >= 1_024 -> "$sign${(absBytes / 1_024).toLong()} KB"
             else -> "$bytes B"
         }
     }
@@ -109,10 +128,13 @@ object FormatterUtils {
      * Format file size with decimal precision
      */
     fun formatFileSizePrecise(bytes: Long): String {
+        val absBytes = kotlin.math.abs(bytes.toDouble())
+        val sign = if (bytes < 0) "-" else ""
+
         return when {
-            bytes >= 1_073_741_824 -> String.format("%.2f GB", bytes / 1_073_741_824.0)
-            bytes >= 1_048_576 -> String.format("%.2f MB", bytes / 1_048_576.0)
-            bytes >= 1_024 -> String.format("%.2f KB", bytes / 1_024.0)
+            absBytes >= 1_073_741_824 -> "$sign${String.format("%.2f GB", absBytes / 1_073_741_824.0)}"
+            absBytes >= 1_048_576 -> "$sign${String.format("%.2f MB", absBytes / 1_048_576.0)}"
+            absBytes >= 1_024 -> "$sign${String.format("%.2f KB", absBytes / 1_024.0)}"
             else -> "$bytes B"
         }
     }
@@ -212,14 +234,16 @@ object FormatterUtils {
      * Get cardinal direction from bearing
      */
     fun getCardinalDirection(bearing: Float): String {
+        if (!bearing.isFinite()) return "N"
+        val normalizedBearing = ((bearing % 360f) + 360f) % 360f
         return when {
-            bearing < 22.5 || bearing >= 337.5 -> "N"
-            bearing < 67.5 -> "NE"
-            bearing < 112.5 -> "E"
-            bearing < 157.5 -> "SE"
-            bearing < 202.5 -> "S"
-            bearing < 247.5 -> "SW"
-            bearing < 292.5 -> "W"
+            normalizedBearing < 22.5 || normalizedBearing >= 337.5 -> "N"
+            normalizedBearing < 67.5 -> "NE"
+            normalizedBearing < 112.5 -> "E"
+            normalizedBearing < 157.5 -> "SE"
+            normalizedBearing < 202.5 -> "S"
+            normalizedBearing < 247.5 -> "SW"
+            normalizedBearing < 292.5 -> "W"
             else -> "NW"
         }
     }

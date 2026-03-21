@@ -372,4 +372,91 @@ class ExtendedUnitTests {
         assertFalse(ValidationUtils.isWithinRange(timestamp = 5L, startTime = 10L, endTime = 0L))
     }
 
+    @Test
+    fun `highPassFilter preserves directional change`() {
+        val result = SensorMath.highPassFilter(current = 4f, previous = 10f, alpha = 0.5f)
+        assertEquals(3f, result, 0.001f)
+    }
+
+    @Test
+    fun `normalize returns zero for zero width range`() {
+        val result = SensorMath.normalize(value = 5f, min = 10f, max = 10f)
+        assertEquals(0f, result, 0f)
+    }
+
+    @Test
+    fun `mapRange returns target minimum for zero width source range`() {
+        val result = SensorMath.mapRange(value = 5f, fromMin = 10f, fromMax = 10f, toMin = 100f, toMax = 200f)
+        assertEquals(100f, result, 0f)
+    }
+
+    @Test
+    fun `formatFloat handles negative decimal places safely`() {
+        assertEquals("12", FormatterUtils.formatFloat(12.34f, decimalPlaces = -1))
+    }
+
+    @Test
+    fun `formatLargeNumber keeps sign and fraction`() {
+        assertEquals("-1.5K", FormatterUtils.formatLargeNumber(-1_500))
+    }
+
+    @Test
+    fun `formatTimeAgo handles future timestamps`() {
+        val result = FormatterUtils.formatTimeAgo(System.currentTimeMillis() + 120_000)
+        assertTrue(result.startsWith("In "))
+    }
+
+    @Test
+    fun `formatFileSize handles negative values`() {
+        assertEquals("-2 KB", FormatterUtils.formatFileSize(-2_048))
+    }
+
+    @Test
+    fun `getCardinalDirection normalizes out of range bearings`() {
+        assertEquals("N", FormatterUtils.getCardinalDirection(360f))
+        assertEquals("W", FormatterUtils.getCardinalDirection(-90f))
+    }
+
+    @Test
+    fun `toCSV escapes commas quotes and newlines`() {
+        val csv = DataExport.toCSV(
+            headers = listOf("Sensor,Name", "Value"),
+            rows = listOf(listOf("A\"1", "line1\nline2"))
+        )
+
+        assertTrue(csv.contains("\"Sensor,Name\""))
+        assertTrue(csv.contains("\"A\"\"1\""))
+        assertTrue(csv.contains("\"line1\nline2\""))
+    }
+
+    @Test
+    fun `toJSON escapes strings and serializes lists as valid json`() {
+        val json = DataExport.toJSON(
+            mapOf(
+                "message" to "hello \"sensor\"",
+                "values" to listOf("a", "b"),
+                "invalid" to Double.NaN
+            )
+        )
+
+        assertTrue(json.contains("\"message\": \"hello \\\"sensor\\\"\""))
+        assertTrue(json.contains("\"values\": [\"a\", \"b\"]"))
+        assertTrue(json.contains("\"invalid\": null"))
+    }
+
+    @Test
+    fun `validateMagnetometerData rejects unrealistic values`() {
+        assertFalse(SensorDataValidator.validateMagnetometerData(250f, 0f, 0f))
+    }
+
+    @Test
+    fun `validateBarometerData rejects implausibly low pressure`() {
+        assertFalse(SensorDataValidator.validateBarometerData(500f))
+    }
+
+    @Test
+    fun `sanitizeFloat handles reversed boundaries`() {
+        assertEquals(10f, DataSanitizer.sanitizeFloat(20f, min = 10f, max = -10f), 0f)
+    }
+
 }
