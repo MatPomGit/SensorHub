@@ -120,9 +120,9 @@ object SensorDataValidator {
         return DataValidator.isValidSensorValue(x) &&
                DataValidator.isValidSensorValue(y) &&
                DataValidator.isValidSensorValue(z) &&
-               x in -500f..500f &&
-               y in -500f..500f &&
-               z in -500f..500f
+               x in -200f..200f &&
+               y in -200f..200f &&
+               z in -200f..200f
     }
     
     /**
@@ -155,7 +155,7 @@ object SensorDataValidator {
      */
     fun validateBarometerData(pressure: Float): Boolean {
         return DataValidator.isValidSensorValue(pressure) &&
-               pressure in 300f..1100f // Typical atmospheric pressure range
+               pressure in 800f..1100f
     }
 }
 
@@ -269,11 +269,13 @@ object DataSanitizer {
      * Sanitize float value
      */
     fun sanitizeFloat(value: Float, min: Float = -1000f, max: Float = 1000f): Float {
+        val rangeMin = min.coerceAtMost(max)
+        val rangeMax = max.coerceAtLeast(min)
         return when {
             value.isNaN() -> 0f
-            value.isInfinite() -> if (value > 0) max else min
-            value < min -> min
-            value > max -> max
+            value.isInfinite() -> if (value > 0) rangeMax else rangeMin
+            value < rangeMin -> rangeMin
+            value > rangeMax -> rangeMax
             else -> value
         }
     }
@@ -282,11 +284,13 @@ object DataSanitizer {
      * Sanitize double value
      */
     fun sanitizeDouble(value: Double, min: Double = -1000.0, max: Double = 1000.0): Double {
+        val rangeMin = min.coerceAtMost(max)
+        val rangeMax = max.coerceAtLeast(min)
         return when {
             value.isNaN() -> 0.0
-            value.isInfinite() -> if (value > 0) max else min
-            value < min -> min
-            value > max -> max
+            value.isInfinite() -> if (value > 0) rangeMax else rangeMin
+            value < rangeMin -> rangeMin
+            value > rangeMax -> rangeMax
             else -> value
         }
     }

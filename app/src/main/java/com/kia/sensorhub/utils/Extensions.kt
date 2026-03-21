@@ -36,6 +36,17 @@ fun Long.toFormattedDate(pattern: String = "yyyy-MM-dd HH:mm:ss"): String {
 fun Long.toRelativeTime(): String {
     val now = System.currentTimeMillis()
     val diff = now - this
+
+    if (diff < 0) {
+        val futureDiff = -diff
+        return when {
+            futureDiff < 1000 -> "In a moment"
+            futureDiff < 60000 -> "In ${futureDiff / 1000}s"
+            futureDiff < 3600000 -> "In ${futureDiff / 60000}m"
+            futureDiff < 86400000 -> "In ${futureDiff / 3600000}h"
+            else -> "In ${futureDiff / 86400000}d"
+        }
+    }
     
     return when {
         diff < 1000 -> "Just now"
@@ -82,13 +93,17 @@ object SensorMath {
      * Apply high-pass filter to detect changes
      */
     fun highPassFilter(current: Float, previous: Float, alpha: Float = 0.8f): Float {
-        return alpha * (previous + current - previous)
+        val safeAlpha = alpha.coerceIn(0f, 1f)
+        return safeAlpha * (previous - current)
     }
     
     /**
      * Normalize value to 0-1 range
      */
     fun normalize(value: Float, min: Float, max: Float): Float {
+        if (!value.isFinite() || !min.isFinite() || !max.isFinite() || min == max) {
+            return 0f
+        }
         return ((value - min) / (max - min)).coerceIn(0f, 1f)
     }
     
@@ -100,6 +115,12 @@ object SensorMath {
         fromMin: Float, fromMax: Float,
         toMin: Float, toMax: Float
     ): Float {
+        if (!value.isFinite() || !fromMin.isFinite() || !fromMax.isFinite() || !toMin.isFinite() || !toMax.isFinite()) {
+            return toMin
+        }
+        if (fromMin == fromMax) {
+            return toMin
+        }
         return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin)
     }
     
@@ -253,11 +274,11 @@ object DataExport {
         val sb = StringBuilder()
         
         // Headers
-        sb.appendLine(headers.joinToString(","))
+        sb.appendLine(headers.joinToString(",") { escapeCsvField(it) })
         
         // Rows
         rows.forEach { row ->
-            sb.appendLine(row.joinToString(","))
+            sb.appendLine(row.joinToString(",") { escapeCsvField(it.toString()) })
         }
         
         return sb.toString()
@@ -268,24 +289,74 @@ object DataExport {
      */
     fun toJSON(data: Map<String, Any>): String {
         // Simple JSON serialization (for complex objects, use Gson or kotlinx.serialization)
-        val sb = StringBuilder()
-        sb.append("{\n")
-        
-        data.entries.forEachIndexed { index, (key, value) ->
-            sb.append("  \"$key\": ")
-            when (value) {
-                is String -> sb.append("\"$value\"")
-                is Number -> sb.append(value)
-                is Boolean -> sb.append(value)
-                is List<*> -> sb.append("[${value.joinToString(", ")}]")
-                else -> sb.append("\"$value\"")
+        return buildString {
+            append("{\n")
+
+            data.entries.forEachIndexed { index, (key, value) ->
+                append("  ")
+                append(serializeJsonValue(key))
+                append(": ")
+                append(serializeJsonValue(value))
+                if (index < data.size - 1) append(",")
+                append("\n")
             }
-            if (index < data.size - 1) sb.append(",")
-            sb.append("\n")
+
+            append("}")
         }
-        
-        sb.append("}")
-        return sb.toString()
+    }
+
+    private fun escapeCsvField(value: String): String {
+        val escaped = value.replace("\"", "\"\"")
+        return if (escaped.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
+            "\"$escaped\""
+        } else {
+            escaped
+        }
+    }
+
+    private fun serializeJsonValue(value: Any?): String {
+        return when (value) {
+            null -> "null"
+            is String -> "\"${escapeJsonString(value)}\""
+            is Number -> {
+                val numericValue = value.toDouble()
+                if (numericValue.isFinite()) value.toString() else "null"
+            }
+            is Boolean -> value.toString()
+            is Map<*, *> -> value.entries.joinToString(prefix = "{", postfix = "}") { (nestedKey, nestedValue) ->
+                "${serializeJsonValue(nestedKey?.toString())}: ${serializeJsonValue(nestedValue)}"
+            }
+            is Iterable<*> -> value.joinToString(prefix = "[", postfix = "]") { item ->
+                serializeJsonValue(item)
+            }
+            is Array<*> -> value.joinToString(prefix = "[", postfix = "]") { item ->
+                serializeJsonValue(item)
+            }
+            else -> "\"${escapeJsonString(value.toString())}\""
+        }
+    }
+
+    private fun escapeJsonString(value: String): String {
+        val builder = StringBuilder()
+        value.forEach { char ->
+            when (char) {
+                '\\' -> builder.append("\\\\")
+                '"' -> builder.append("\\\"")
+                '\b' -> builder.append("\\b")
+                '\u000C' -> builder.append("\\f")
+                '\n' -> builder.append("\\n")
+                '\r' -> builder.append("\\r")
+                '\t' -> builder.append("\\t")
+                else -> {
+                    if (char.code < 0x20) {
+                        builder.append("\\u%04x".format(char.code))
+                    } else {
+                        builder.append(char)
+                    }
+                }
+            }
+        }
+        return builder.toString()
     }
 }
 
