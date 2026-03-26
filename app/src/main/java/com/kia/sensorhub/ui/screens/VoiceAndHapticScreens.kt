@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -328,7 +329,7 @@ fun HapticFeedbackScreen(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
                     } else {
-                        vibrator.vibrate(50)
+                        vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
                     }
                 }
             )
@@ -341,7 +342,7 @@ fun HapticFeedbackScreen(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK))
                     } else {
-                        vibrator.vibrate(longArrayOf(0, 50, 50, 50), -1)
+                        vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 50, 50, 50), -1))
                     }
                 }
             )
@@ -354,7 +355,7 @@ fun HapticFeedbackScreen(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK))
                     } else {
-                        vibrator.vibrate(100)
+                        vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
                     }
                 }
             )

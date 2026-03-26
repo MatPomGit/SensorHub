@@ -77,39 +77,6 @@ object AppModule {
     }
     
     /**
-     * Provide LightSensorManager
-     */
-    @Provides
-    @Singleton
-    fun provideLightSensorManager(
-        @ApplicationContext context: Context
-    ): LightSensorManager {
-        return LightSensorManager(context)
-    }
-    
-    /**
-     * Provide ProximitySensorManager
-     */
-    @Provides
-    @Singleton
-    fun provideProximitySensorManager(
-        @ApplicationContext context: Context
-    ): ProximitySensorManager {
-        return ProximitySensorManager(context)
-    }
-    
-    /**
-     * Provide BarometerManager
-     */
-    @Provides
-    @Singleton
-    fun provideBarometerManager(
-        @ApplicationContext context: Context
-    ): BarometerManager {
-        return BarometerManager(context)
-    }
-    
-    /**
      * Provide GpsManager
      */
     @Provides
