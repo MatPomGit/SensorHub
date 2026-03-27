@@ -57,7 +57,7 @@ fun SensorHubApp() {
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.titleLarge
                 )
-                Divider()
+                HorizontalDivider()
                 NavigationDrawerItem(
                     icon = { Icon(Screen.Home.icon, contentDescription = null) },
                     label = { Text(Screen.Home.title) },
