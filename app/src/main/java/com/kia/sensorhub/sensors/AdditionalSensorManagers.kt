@@ -40,7 +40,7 @@ class LightSensorManager @Inject constructor(
                 tag = "LightSensorManager",
                 message = "Light sensor not available"
             )
-            close()
+            close(IllegalStateException("Light sensor not available"))
             return@callbackFlow
         }
         
@@ -68,7 +68,8 @@ class LightSensorManager @Inject constructor(
                 tag = "LightSensorManager",
                 message = "Failed to register light sensor listener"
             )
-            close()
+            close(IllegalStateException("Failed to register light sensor listener"))
+            return@callbackFlow
         }
         
         awaitClose {
@@ -147,7 +148,7 @@ class ProximitySensorManager @Inject constructor(
                 tag = "ProximitySensorManager",
                 message = "Proximity sensor not available"
             )
-            close()
+            close(IllegalStateException("Proximity sensor not available"))
             return@callbackFlow
         }
         
@@ -185,7 +186,8 @@ class ProximitySensorManager @Inject constructor(
                 tag = "ProximitySensorManager",
                 message = "Failed to register proximity sensor listener"
             )
-            close()
+            close(IllegalStateException("Failed to register proximity sensor listener"))
+            return@callbackFlow
         }
         
         awaitClose {
@@ -244,7 +246,7 @@ class BarometerManager @Inject constructor(
                 tag = "BarometerManager",
                 message = "Pressure sensor not available"
             )
-            close()
+            close(IllegalStateException("Pressure sensor not available"))
             return@callbackFlow
         }
         
@@ -272,7 +274,8 @@ class BarometerManager @Inject constructor(
                 tag = "BarometerManager",
                 message = "Failed to register pressure sensor listener"
             )
-            close()
+            close(IllegalStateException("Failed to register pressure sensor listener"))
+            return@callbackFlow
         }
         
         awaitClose {
