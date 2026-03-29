@@ -89,6 +89,9 @@ class SensorMonitoringWorker @AssistedInject constructor(
             }
             
             Result.success()
+        } catch (e: IllegalStateException) {
+            // Permanent failure (e.g. sensor unavailable) — do not retry
+            Result.failure()
         } catch (e: Exception) {
             Result.retry()
         }
