@@ -146,7 +146,7 @@ class DataExportManager(private val context: Context) {
             
             ExportResult.Success(
                 file = file,
-                format = ExportFormat.JSON,
+                format = ExportFormat.STATISTICS,
                 recordCount = 1,
                 fileSizeBytes = file.length()
             )
