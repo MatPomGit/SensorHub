@@ -199,7 +199,7 @@ class ExtendedUnitTests {
     
     @Test
     fun `calculateMagnitude returns correct value`() {
-        val magnitude = DataValidator.calculateMagnitude(3f, 4f, 0f)
+        val magnitude = SensorMath.calculateMagnitude(3f, 4f, 0f)
         assertEquals(5f, magnitude, 0.01f)
     }
     

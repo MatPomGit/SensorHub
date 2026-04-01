@@ -123,9 +123,9 @@ object MockDataGenerator {
             SensorReading(
                 id = index.toLong(),
                 sensorType = sensorType,
-                x = Random.nextFloat() * 20 - 10,
-                y = Random.nextFloat() * 20 - 10,
-                z = Random.nextFloat() * 20 - 10,
+                valueX = Random.nextFloat() * 20 - 10,
+                valueY = Random.nextFloat() * 20 - 10,
+                valueZ = Random.nextFloat() * 20 - 10,
                 timestamp = System.currentTimeMillis() - (count - index) * 1000L
             )
         }
@@ -145,9 +145,9 @@ object MockDataGenerator {
             SensorReading(
                 id = index.toLong(),
                 sensorType = sensorTypes.random(),
-                x = Random.nextFloat() * 20 - 10,
-                y = Random.nextFloat() * 20 - 10,
-                z = Random.nextFloat() * 20 - 10,
+                valueX = Random.nextFloat() * 20 - 10,
+                valueY = Random.nextFloat() * 20 - 10,
+                valueZ = Random.nextFloat() * 20 - 10,
                 timestamp = System.currentTimeMillis() - (count - index) * 500L
             )
         }
@@ -245,9 +245,9 @@ object TestDataProvider {
         return SensorReading(
             id = 1,
             sensorType = sensorType,
-            x = 1.5f,
-            y = 2.3f,
-            z = -0.8f,
+            valueX = 1.5f,
+            valueY = 2.3f,
+            valueZ = -0.8f,
             timestamp = System.currentTimeMillis()
         )
     }
