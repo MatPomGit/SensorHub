@@ -9,14 +9,31 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 object DatabaseMigrations {
     
     /**
-     * Migration from version 1 to 2
-     * Example: Add new column
+     * Migracja z wersji 1 do 2.
+     * Dodaje dedykowane kolumny GPS typu REAL (Double w Kotlinie).
      */
     val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(database: SupportSQLiteDatabase) {
-            // Example: Add accuracy column
+            // Dodaje kolumny nullable, aby bezpiecznie migrować istniejące rekordy.
             database.execSQL(
-                "ALTER TABLE sensor_readings ADD COLUMN accuracy REAL NOT NULL DEFAULT 0.0"
+                "ALTER TABLE sensor_readings ADD COLUMN latitude REAL"
+            )
+            database.execSQL(
+                "ALTER TABLE sensor_readings ADD COLUMN longitude REAL"
+            )
+            database.execSQL(
+                "ALTER TABLE sensor_readings ADD COLUMN altitude REAL"
+            )
+
+            // Uzupełnia nowe kolumny dla historycznych rekordów GPS z poprzedniego mapowania X/Y/Z.
+            database.execSQL(
+                """
+                UPDATE sensor_readings
+                SET latitude = CAST(valueX AS REAL),
+                    longitude = CAST(valueY AS REAL),
+                    altitude = CAST(valueZ AS REAL)
+                WHERE sensorType = 'GPS'
+                """.trimIndent()
             )
         }
     }
@@ -40,9 +57,7 @@ object DatabaseMigrations {
      */
     fun getAllMigrations(): Array<Migration> {
         return arrayOf(
-            // MIGRATION_1_2,
-            // MIGRATION_2_3
-            // Add more migrations as needed
+            MIGRATION_1_2
         )
     }
 }

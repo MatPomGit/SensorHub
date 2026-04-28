@@ -2,6 +2,7 @@ package com.kia.sensorhub.di
 
 import android.content.Context
 import androidx.room.Room
+import com.kia.sensorhub.data.database.DatabaseMigrations
 import com.kia.sensorhub.data.database.SensorDao
 import com.kia.sensorhub.data.database.SensorDatabase
 import com.kia.sensorhub.sensors.*
@@ -31,7 +32,10 @@ object AppModule {
             context,
             SensorDatabase::class.java,
             SensorDatabase.DATABASE_NAME
-        ).build()
+        )
+            // Rejestruje migracje, aby zachować dane użytkownika po zmianach schematu.
+            .addMigrations(*DatabaseMigrations.getAllMigrations())
+            .build()
     }
     
     /**

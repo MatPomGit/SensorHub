@@ -60,16 +60,19 @@ class DataExportManager(private val context: Context) {
             val file = createExportFile(fileName ?: generateFileName(), "csv")
             FileWriter(file).use { writer ->
                 // Write CSV header
-                writer.append("ID,Sensor Type,X,Y,Z,Extra,Accuracy,Timestamp,Human Readable Time\n")
+                writer.append("ID,Sensor Type,X,Y,Z,Latitude,Longitude,Altitude,Extra,Accuracy,Timestamp,Human Readable Time\n")
 
                 // Write data rows
                 readings.forEach { reading ->
                     val escapedFields = listOf(
                         reading.id.toString(),
                         reading.sensorType,
-                        reading.valueX.toString(),
-                        reading.valueY.toString(),
-                        reading.valueZ.toString(),
+                        getAxisX(reading).toString(),
+                        getAxisY(reading).toString(),
+                        getAxisZ(reading).toString(),
+                        (reading.latitude?.toString() ?: ""),
+                        (reading.longitude?.toString() ?: ""),
+                        (reading.altitude?.toString() ?: ""),
                         reading.valueExtra.toString(),
                         reading.accuracy.toString(),
                         reading.timestamp.toString(),
@@ -120,9 +123,12 @@ class DataExportManager(private val context: Context) {
                     val readingObj = JSONObject().apply {
                         put("id", reading.id)
                         put("sensorType", reading.sensorType)
-                        put("x", reading.valueX)
-                        put("y", reading.valueY)
-                        put("z", reading.valueZ)
+                        put("x", getAxisX(reading))
+                        put("y", getAxisY(reading))
+                        put("z", getAxisZ(reading))
+                        put("latitude", reading.latitude)
+                        put("longitude", reading.longitude)
+                        put("altitude", reading.altitude)
                         put("extra", reading.valueExtra)
                         put("accuracy", reading.accuracy)
                         put("timestamp", reading.timestamp)
@@ -301,14 +307,47 @@ class DataExportManager(private val context: Context) {
             "byType" to grouped.mapValues { (_, typeReadings) ->
                 mapOf(
                     "count" to typeReadings.size,
-                    "xStats" to getValueStats(typeReadings.map { it.valueX }),
-                    "yStats" to getValueStats(typeReadings.map { it.valueY }),
-                    "zStats" to getValueStats(typeReadings.map { it.valueZ }),
+                    "xStats" to getValueStats(typeReadings.map { getAxisX(it) }),
+                    "yStats" to getValueStats(typeReadings.map { getAxisY(it) }),
+                    "zStats" to getValueStats(typeReadings.map { getAxisZ(it) }),
                     "extraStats" to getValueStats(typeReadings.map { it.valueExtra }),
                     "accuracyStats" to getValueStats(typeReadings.map { it.accuracy })
                 )
             }
         )
+    }
+
+    /**
+     * Zwraca oś X z uwzględnieniem nowego mapowania GPS na kolumny Double.
+     */
+    private fun getAxisX(reading: SensorReading): Float {
+        return if (reading.sensorType == "GPS") {
+            (reading.latitude ?: 0.0).toFloat()
+        } else {
+            reading.valueX
+        }
+    }
+
+    /**
+     * Zwraca oś Y z uwzględnieniem nowego mapowania GPS na kolumny Double.
+     */
+    private fun getAxisY(reading: SensorReading): Float {
+        return if (reading.sensorType == "GPS") {
+            (reading.longitude ?: 0.0).toFloat()
+        } else {
+            reading.valueY
+        }
+    }
+
+    /**
+     * Zwraca oś Z z uwzględnieniem nowego mapowania GPS na kolumny Double.
+     */
+    private fun getAxisZ(reading: SensorReading): Float {
+        return if (reading.sensorType == "GPS") {
+            (reading.altitude ?: 0.0).toFloat()
+        } else {
+            reading.valueZ
+        }
     }
     
     private fun getValueStats(values: List<Float>): Map<String, Float> {
