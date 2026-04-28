@@ -17,6 +17,29 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
+ * Escapuje pole CSV zgodnie z RFC4180 oraz zabezpiecza przed formułami arkusza.
+ */
+internal fun escapeCsvField(value: String): String {
+    // Dodaje apostrof dla wartości mogących zostać zinterpretowanych jako formuła.
+    val formulaSafeValue = if (value.startsWith("=") || value.startsWith("+") || value.startsWith("-") || value.startsWith("@")) {
+        "'$value"
+    } else {
+        value
+    }
+
+    // Podwaja cudzysłowy zgodnie z zasadami CSV.
+    val escapedValue = formulaSafeValue.replace("\"", "\"\"")
+
+    // Obejmuje pole cudzysłowami, gdy zawiera znaki specjalne CSV.
+    val shouldWrapInQuotes = escapedValue.contains(",")
+            || escapedValue.contains("\n")
+            || escapedValue.contains(";")
+            || escapedValue.contains("\"")
+
+    return if (shouldWrapInQuotes) "\"$escapedValue\"" else escapedValue
+}
+
+/**
  * Data Export Manager
  * Handles exporting sensor data to CSV and JSON formats
  */
@@ -41,15 +64,20 @@ class DataExportManager(private val context: Context) {
 
                 // Write data rows
                 readings.forEach { reading ->
-                    writer.append("${reading.id},")
-                    writer.append("${reading.sensorType},")
-                    writer.append("${reading.valueX},")
-                    writer.append("${reading.valueY},")
-                    writer.append("${reading.valueZ},")
-                    writer.append("${reading.valueExtra},")
-                    writer.append("${reading.accuracy},")
-                    writer.append("${reading.timestamp},")
-                    writer.append("${formatTimestamp(reading.timestamp)}\n")
+                    val escapedFields = listOf(
+                        reading.id.toString(),
+                        reading.sensorType,
+                        reading.valueX.toString(),
+                        reading.valueY.toString(),
+                        reading.valueZ.toString(),
+                        reading.valueExtra.toString(),
+                        reading.accuracy.toString(),
+                        reading.timestamp.toString(),
+                        formatTimestamp(reading.timestamp)
+                    ).map(::escapeCsvField)
+
+                    writer.append(escapedFields.joinToString(","))
+                    writer.append("\n")
                 }
 
                 writer.flush()
