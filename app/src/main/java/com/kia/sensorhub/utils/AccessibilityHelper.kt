@@ -1,7 +1,15 @@
 package com.kia.sensorhub.utils
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 
@@ -68,9 +76,16 @@ object AccessibilityHelper {
      */
     fun announceForAccessibility(context: Context, message: String) {
         val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-        if (am.isEnabled) {
-            // TODO: Implement actual announcement
-            // This would typically use AccessibilityEvent
+        if (am.isEnabled && message.isNotBlank()) {
+            // Tworzymy zdarzenie typu announcement i uzupełniamy wymagane metadane.
+            val event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT).apply {
+                text.add(message)
+                className = AccessibilityHelper::class.java.name
+                packageName = context.packageName
+            }
+
+            // Wysyłamy zdarzenie do managera, aby czytnik ekranu mógł je odczytać.
+            am.sendAccessibilityEvent(event)
         }
     }
 }
@@ -199,6 +214,12 @@ class ScreenReaderTextBuilder {
  * Haptic feedback helper
  */
 object HapticFeedbackHelper {
+
+    internal data class HapticConfig(
+        val timings: LongArray,
+        val amplitudes: IntArray,
+        val legacyDurationMs: Long
+    )
     
     /**
      * Provide haptic feedback for accessibility
@@ -207,10 +228,103 @@ object HapticFeedbackHelper {
         context: Context,
         feedbackType: HapticFeedbackType
     ) {
-        // Only provide haptic if accessibility enabled
-        if (AccessibilityHelper.isAccessibilityEnabled(context)) {
-            // TODO: Implement actual haptic feedback
-            // Would use Vibrator service
+        // Działamy tylko wtedy, gdy funkcja jest dostępna i aplikacja ma wymagane uprawnienie.
+        if (!canProvideHapticFeedback(context)) {
+            return
+        }
+
+        val vibrator = getVibrator(context) ?: return
+        if (!vibrator.hasVibrator()) {
+            // Graceful no-op wyłącznie gdy urządzenie nie wspiera haptyki.
+            return
+        }
+
+        val config = mapHapticType(feedbackType)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val effect = VibrationEffect.createWaveform(
+                config.timings,
+                config.amplitudes,
+                -1
+            )
+            vibrator.vibrate(effect)
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(config.legacyDurationMs)
+        }
+    }
+
+    /**
+     * Sprawdza warunki brzegowe: dostępność accessibility, uprawnienie VIBRATE i wsparcie API.
+     */
+    internal fun canProvideHapticFeedback(context: Context): Boolean {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.VIBRATE
+        ) == PackageManager.PERMISSION_GRANTED
+
+        return canProvideHapticFeedback(
+            isAccessibilityEnabled = AccessibilityHelper.isAccessibilityEnabled(context),
+            hasVibratePermission = hasPermission
+        )
+    }
+
+    /**
+     * Wydzielona logika warunkowa, aby można ją było testować bez zależności od frameworka Android.
+     */
+    internal fun canProvideHapticFeedback(
+        isAccessibilityEnabled: Boolean,
+        hasVibratePermission: Boolean
+    ): Boolean {
+        return isAccessibilityEnabled && hasVibratePermission
+    }
+
+    /**
+     * Pobiera odpowiedni obiekt Vibrator w zależności od wersji Androida.
+     */
+    private fun getVibrator(context: Context): Vibrator? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val manager = context.getSystemService(VibratorManager::class.java)
+            manager?.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        }
+    }
+
+    /**
+     * Mapuje typy feedbacku na konkretne wzorce drgań.
+     */
+    internal fun mapHapticType(feedbackType: HapticFeedbackType): HapticConfig {
+        return when (feedbackType) {
+            HapticFeedbackType.CLICK -> HapticConfig(
+                timings = longArrayOf(0, 20),
+                amplitudes = intArrayOf(0, 120),
+                legacyDurationMs = 20
+            )
+
+            HapticFeedbackType.LONG_PRESS -> HapticConfig(
+                timings = longArrayOf(0, 50),
+                amplitudes = intArrayOf(0, 180),
+                legacyDurationMs = 50
+            )
+
+            HapticFeedbackType.SUCCESS -> HapticConfig(
+                timings = longArrayOf(0, 25, 40, 25),
+                amplitudes = intArrayOf(0, 150, 0, 180),
+                legacyDurationMs = 90
+            )
+
+            HapticFeedbackType.ERROR -> HapticConfig(
+                timings = longArrayOf(0, 35, 30, 35, 30, 60),
+                amplitudes = intArrayOf(0, 220, 0, 220, 0, 180),
+                legacyDurationMs = 155
+            )
+
+            HapticFeedbackType.WARNING -> HapticConfig(
+                timings = longArrayOf(0, 40, 30, 40),
+                amplitudes = intArrayOf(0, 200, 0, 160),
+                legacyDurationMs = 110
+            )
         }
     }
     
