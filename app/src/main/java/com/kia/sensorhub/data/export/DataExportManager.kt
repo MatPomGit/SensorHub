@@ -116,7 +116,7 @@ class DataExportManager(private val context: Context) {
             val jsonObject = JSONObject().apply {
                 put("exportDate", formatNow())
                 put("recordCount", readings.size)
-                put("appVersion", "3.0.0-alpha")
+                put("appVersion", getAppVersionName())
                 
                 val dataArray = JSONArray()
                 readings.forEach { reading ->
@@ -286,6 +286,24 @@ class DataExportManager(private val context: Context) {
         return "sensorhub_export_$timestamp"
     }
     
+    /**
+     * Pobiera nazwę wersji aplikacji z metadanych pakietu uruchomieniowego.
+     * W przypadku błędu zwraca bezpieczny fallback "unknown".
+     */
+    private fun getAppVersionName(): String {
+        return try {
+            @Suppress("DEPRECATION")
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
+        } catch (e: Exception) {
+            ErrorHandler.logWarning(
+                tag = "DataExportManager",
+                message = "Failed to resolve app version name: ${e.message}"
+            )
+            "unknown"
+        }
+    }
+
+
 
     private fun formatNow(): String =
         dateTimeFormatter.format(Instant.now().atZone(outputZone))
