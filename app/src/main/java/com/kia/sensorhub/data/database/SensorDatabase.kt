@@ -10,7 +10,7 @@ import com.kia.sensorhub.data.model.SensorReading
  */
 @Database(
     entities = [SensorReading::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class SensorDatabase : RoomDatabase() {

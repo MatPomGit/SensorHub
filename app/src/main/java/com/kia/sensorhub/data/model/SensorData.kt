@@ -156,7 +156,11 @@ data class SensorReading(
     val valueY: Float = 0f,
     val valueZ: Float = 0f,
     val valueExtra: Float = 0f,
-    val accuracy: Float = 0f
+    val accuracy: Float = 0f,
+    // Dedykowane kolumny GPS zapisują współrzędne jako Double bez utraty precyzji.
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val altitude: Double? = null
 )
 
 /**
@@ -196,9 +200,10 @@ fun SensorData.toSensorReading(): SensorReading {
         is GpsData -> SensorReading(
             timestamp = timestamp,
             sensorType = sensorType.name,
-            valueX = latitude.toFloat(),
-            valueY = longitude.toFloat(),
-            valueZ = altitude.toFloat(),
+            // GPS jest mapowany do dedykowanych pól Double bez konwersji do Float.
+            latitude = latitude,
+            longitude = longitude,
+            altitude = altitude,
             valueExtra = speed,
             accuracy = accuracy
         )
