@@ -1,6 +1,7 @@
 package com.kia.sensorhub.workers
 
 import android.content.Context
+import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.*
 import com.kia.sensorhub.data.repository.SensorRepository
@@ -11,6 +12,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import java.util.concurrent.TimeUnit
+import kotlin.math.max
 
 /**
  * Background worker for periodic sensor data collection
@@ -24,9 +26,11 @@ class SensorMonitoringWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams) {
     
     companion object {
+        private const val TAG = "SensorMonitoringWorker"
         const val WORK_NAME = "sensor_monitoring_work"
         const val KEY_SENSOR_TYPE = "sensor_type"
         const val KEY_SAMPLE_COUNT = "sample_count"
+        const val MIN_PERIODIC_INTERVAL_MINUTES = 15L
         private const val MAX_COLLECTION_TIME_MS = 30_000L
         
         /**
@@ -38,6 +42,16 @@ class SensorMonitoringWorker @AssistedInject constructor(
             intervalMinutes: Long = 15,
             sampleCount: Int = 10
         ) {
+            // Wymuszenie minimalnego interwału okresowego zgodnego z ograniczeniami WorkManagera.
+            val safeInterval = sanitizeIntervalMinutes(intervalMinutes)
+            if (safeInterval != intervalMinutes) {
+                // Ostrzeżenie o automatycznej korekcie niepoprawnej wartości wejściowej.
+                Log.w(
+                    TAG,
+                    "Requested interval=$intervalMinutes min is too low. Using $safeInterval min."
+                )
+            }
+
             val constraints = Constraints.Builder()
                 .setRequiresBatteryNotLow(true)
                 .build()
@@ -48,7 +62,7 @@ class SensorMonitoringWorker @AssistedInject constructor(
             )
             
             val request = PeriodicWorkRequestBuilder<SensorMonitoringWorker>(
-                intervalMinutes, TimeUnit.MINUTES
+                safeInterval, TimeUnit.MINUTES
             )
                 .setConstraints(constraints)
                 .setInputData(inputData)
@@ -60,6 +74,13 @@ class SensorMonitoringWorker @AssistedInject constructor(
                 ExistingPeriodicWorkPolicy.KEEP,
                 request
             )
+        }
+
+        /**
+         * Zwraca bezpieczny interwał dla pracy okresowej wymagany przez WorkManager.
+         */
+        internal fun sanitizeIntervalMinutes(intervalMinutes: Long): Long {
+            return max(intervalMinutes, MIN_PERIODIC_INTERVAL_MINUTES)
         }
         
         /**
