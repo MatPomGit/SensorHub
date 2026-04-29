@@ -49,4 +49,32 @@ class DataExportManagerJsonVersionTest {
 
         File(tempDir, "exports").deleteRecursively()
     }
+
+    /**
+     * Weryfikuje fallback "unknown", gdy odczyt wersji z PackageManager kończy się wyjątkiem.
+     */
+    @Test
+    fun `should use unknown app version when package manager throws`() = runTest {
+        val packageName = "com.kia.sensorhub"
+        val tempDir = createTempDir(prefix = "export-json-fallback-test")
+
+        val packageManager = mockk<PackageManager>()
+        every { packageManager.getPackageInfo(packageName, 0) } throws RuntimeException("boom")
+
+        val context = mockk<Context>()
+        every { context.packageName } returns packageName
+        every { context.packageManager } returns packageManager
+        every { context.filesDir } returns tempDir
+        every { context.getExternalFilesDir(null) } returns tempDir
+
+        val manager = DataExportManager(context)
+        val result = manager.exportToJson(readings = listOf(SensorReading(timestamp = 1L, sensorType = "ACC")))
+
+        val exportedFile = (result as ExportResult.Success).file
+        val exportedJson = JSONObject(exportedFile.readText())
+
+        assertEquals("unknown", exportedJson.getString("appVersion"))
+
+        File(tempDir, "exports").deleteRecursively()
+    }
 }

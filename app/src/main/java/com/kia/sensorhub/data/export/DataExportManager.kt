@@ -48,6 +48,12 @@ class DataExportManager(private val context: Context) {
     private val outputZone = ZoneId.systemDefault()
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
     private val fileNameFormatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss", Locale.US)
+    private companion object {
+        /**
+         * Bezpieczna wartość wersji aplikacji używana, gdy nie uda się odczytać metadanych pakietu.
+         */
+        const val UNKNOWN_APP_VERSION = "unknown"
+    }
     
     /**
      * Export data to CSV format
@@ -293,13 +299,13 @@ class DataExportManager(private val context: Context) {
     private fun getAppVersionName(): String {
         return try {
             @Suppress("DEPRECATION")
-            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: UNKNOWN_APP_VERSION
         } catch (e: Exception) {
             ErrorHandler.logWarning(
                 tag = "DataExportManager",
                 message = "Failed to resolve app version name: ${e.message}"
             )
-            "unknown"
+            UNKNOWN_APP_VERSION
         }
     }
 
