@@ -1,0 +1,5 @@
+# Lokalna konfiguracja Android SDK.
+# Ten plik jest przykładowy i NIE powinien zawierać ścieżek specyficznych dla innego dewelopera.
+# Skopiuj ten plik do local.properties i ustaw poprawną ścieżkę na swoim środowisku.
+
+sdk.dir=/path/to/Android/sdk
