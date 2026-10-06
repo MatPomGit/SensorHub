@@ -6,6 +6,17 @@ on:
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
+    inputs:
+      publish_prerelease:
+        description: "Publish the verified debug APK as a durable technical prerelease"
+        required: true
+        default: false
+        type: boolean
+      release_tag:
+        description: "Release tag, e.g. sensorhub-v1.0-rc1; required when publishing"
+        required: false
+        default: ""
+        type: string
 
 jobs:
   build-debug-apk:
@@ -104,3 +115,64 @@ jobs:
           retention-days: 3
           name: androidTest-reports
           path: app/build/reports/androidTests
+
+  publish-prerelease:
+    name: Publish technical prerelease
+    needs: [build-debug-apk, instrumentation-tests]
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_prerelease }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Validate release tag
+        shell: bash
+        run: |
+          test -n "${{ inputs.release_tag }}" || {
+            echo "::error::release_tag is required when publish_prerelease=true"
+            exit 2
+          }
+
+      - name: Download debug APK from this workflow run
+        uses: actions/download-artifact@v4
+        with:
+          name: app-debug-apk
+          path: release
+
+      - name: Generate SHA-256 manifest
+        shell: bash
+        run: |
+          cd release
+          sha256sum app-debug.apk > SHA256SUMS.txt
+
+      - name: Publish GitHub prerelease
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          target_commitish: ${{ github.sha }}
+          name: "SensorHub technical prerelease"
+          prerelease: true
+          body: |
+            Technical debug snapshot produced after unit tests, lint and instrumentation tests.
+            This release is intended for reproducible evaluation of the repository state.
+          files: |
+            release/app-debug.apk
+            release/SHA256SUMS.txt
+
+      - name: Delete transient APK artifact
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --paginate \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" \
+            --jq '.artifacts[] | select(.workflow_run.id == ${{ github.run_id }}) | select(.name == "app-debug-apk") | .id' \
+          | while read -r artifact_id; do
+              [ -z "$artifact_id" ] && continue
+              gh api --method DELETE \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "repos/${GITHUB_REPOSITORY}/actions/artifacts/$artifact_id"
+            done
