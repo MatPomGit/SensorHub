@@ -263,6 +263,10 @@ splits {
 
 ### GitHub Actions
 
+Aktualny workflow `.github/workflows/android-ci.yml` przechowuje debug APK i raporty tylko krótkoterminowo. Ręczne uruchomienie może opcjonalnie utworzyć trwały techniczny GitHub prerelease (`publish_prerelease=true` + `release_tag`) po przejściu testów, lint i testów instrumentacyjnych. Release zawiera APK i sumę SHA-256; nie zastępuje produkcyjnego podpisanego wydania.
+
+Poniższy fragment jest jedynie przykładem alternatywnej konfiguracji CI:
+
 Create `.github/workflows/build.yml`:
 ```yaml
 name: Android CI
